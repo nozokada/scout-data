@@ -1,7 +1,7 @@
 from dateutil.parser import parse
 from hashlib import md5
 
-from provider import UnsplashAPIProvider, FirebaseAPIProvider
+from provider import FirebaseAPIProvider, UnsplashAPIProvider
 
 firebase_provider = FirebaseAPIProvider()
 photo_provider = UnsplashAPIProvider()
