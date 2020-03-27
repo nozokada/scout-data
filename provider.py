@@ -5,6 +5,8 @@ import json
 from unsplash.api import Api
 from unsplash.auth import Auth
 
+from constants import UNSPLASH_CREDENTIALS_FILE_PATH, FIREBASE_CREDENTIALS_FILE_PATH
+
 
 class APIProvider(ABC):
 
@@ -38,8 +40,7 @@ class FirebaseAPIProvider(APIProvider):
         self._client = self.authenticate()
 
     def authenticate(self):
-        cred_file = 'firebase_credentials.json'
-        cred = credentials.Certificate(cred_file)
+        cred = credentials.Certificate(FIREBASE_CREDENTIALS_FILE_PATH)
         firebase_admin.initialize_app(cred)
         return firestore.client()
     
@@ -56,10 +57,9 @@ class UnsplashAPIProvider(PhotoAPIProvider):
         self._client = self.authenticate()
 
     def authenticate(self):
-        with open('unsplash_credentials.json') as file:
-            data = json.load(file)
-        auth = Auth(client_id=data['client_id'], client_secret=data['client_secret'], redirect_uri=data['redirect_uri'])
-        return Api(auth)
+        with open(UNSPLASH_CREDENTIALS_FILE_PATH) as file:
+            cred = json.load(file)
+        return Api(Auth(**cred))
 
     def get_photos(self, *args, **kwargs):
         return self._client.photo.all(*args, **kwargs)
