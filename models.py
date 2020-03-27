@@ -12,10 +12,15 @@ class Exif(BaseModel):
     model: str
 
 
+class Position(BaseModel):
+    latitude: float = None
+    longitude: float = None
+
+
 class Location(BaseModel):
     city: str = None
     country: str = None
-    position: str = None
+    position: Position
 
 
 class PhotoUrls(BaseModel):
