@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from google.cloud.firestore_v1 import GeoPoint
 from pydantic import BaseModel
 
 
@@ -12,15 +13,13 @@ class Exif(BaseModel):
     model: str = None
 
 
-class Position(BaseModel):
-    latitude: float = None
-    longitude: float = None
-
-
 class Location(BaseModel):
     city: str = None
     country: str = None
-    position: Position
+    position: GeoPoint
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PhotoUrls(BaseModel):
