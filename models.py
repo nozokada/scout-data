@@ -4,12 +4,12 @@ from pydantic import BaseModel
 
 
 class Exif(BaseModel):
-    aperture: str
-    exposure_time: str
-    focal_length: str
-    iso: int
-    make: str
-    model: str
+    aperture: str = None
+    exposure_time: str = None
+    focal_length: str = None
+    iso: int = None
+    make: str = None
+    model: str = None
 
 
 class Position(BaseModel):
