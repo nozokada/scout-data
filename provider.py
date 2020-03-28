@@ -2,11 +2,13 @@ import json
 from abc import ABC, abstractmethod
 
 import firebase_admin
+from dateutil.parser import parse
 from firebase_admin import credentials, firestore
 from unsplash.api import Api
 from unsplash.auth import Auth
 
 from constants import UNSPLASH_CREDENTIALS_FILE_PATH, FIREBASE_CREDENTIALS_FILE_PATH
+from models import Photo, Location, Position, Exif, PhotoUrls, User
 
 
 class APIProvider(ABC):
@@ -29,10 +31,6 @@ class PhotoAPIProvider(APIProvider, ABC):
     def get_photos(self, *args, **kwargs):
         pass
 
-    @abstractmethod
-    def get_photo(self, *args, **kwargs):
-        pass
-
 
 class FirebaseAPIProvider(APIProvider):
 
@@ -44,7 +42,7 @@ class FirebaseAPIProvider(APIProvider):
         cred = credentials.Certificate(FIREBASE_CREDENTIALS_FILE_PATH)
         firebase_admin.initialize_app(cred)
         return firestore.client()
-    
+
     def add_document(self, collection_id, document_id, data):
         collection_ref = self._client.collection(collection_id)
         document_ref = collection_ref.document(document_id)
@@ -63,7 +61,40 @@ class UnsplashAPIProvider(PhotoAPIProvider):
         return Api(Auth(**cred))
 
     def get_photos(self, *args, **kwargs):
-        return self._client.photo.all(*args, **kwargs)
-    
+        photos = (self.get_photo(listed_photo.id) for listed_photo in self._client.photo.all(*args, **kwargs))
+        return (
+            Photo(
+                id=photo.id,
+                provider='unsplash',
+                likes=photo.likes,
+                location=Location(
+                    city=photo.location.city,
+                    country=photo.location.country,
+                    position=Position(
+                        latitude=photo.location.position['latitude'],
+                        longitude=photo.location.position['longitude'],
+                    )
+                ),
+                exif=Exif(
+                    aperture=photo.exif.aperture,
+                    exposure_time=photo.exif.exposure_time,
+                    focal_length=photo.exif.focal_length,
+                    iso=photo.exif.iso,
+                    make=photo.exif.make,
+                    model=photo.exif.model,
+                ),
+                tags={tag: True for tag in (tag['title'] for tag in photo.tags)},
+                created=parse(photo.created_at),
+                urls=PhotoUrls(
+                    full=photo.urls.full,
+                    raw=photo.urls.raw,
+                    regular=photo.urls.regular,
+                    small=photo.urls.small,
+                    thumb=photo.urls.thumb,
+                ),
+                user=User(name=photo.user.name)
+            ) for photo in photos
+        )
+
     def get_photo(self, *args, **kwargs):
         return self._client.photo.get(*args, **kwargs)
