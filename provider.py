@@ -62,39 +62,50 @@ class UnsplashAPIProvider(PhotoAPIProvider):
 
     def get_photos(self, *args, **kwargs):
         photos = (self.get_photo(listed_photo.id) for listed_photo in self._client.photo.all(*args, **kwargs))
-        return (
-            Photo(
-                id=photo.id,
-                provider='unsplash',
-                likes=photo.likes,
-                location=Location(
-                    city=photo.location.city,
-                    country=photo.location.country,
-                    position=Position(
-                        latitude=photo.location.position['latitude'],
-                        longitude=photo.location.position['longitude'],
-                    )
-                ),
-                exif=Exif(
-                    aperture=photo.exif.aperture,
-                    exposure_time=photo.exif.exposure_time,
-                    focal_length=photo.exif.focal_length,
-                    iso=photo.exif.iso,
-                    make=photo.exif.make,
-                    model=photo.exif.model,
-                ),
-                tags={tag: True for tag in (tag['title'] for tag in photo.tags)},
-                created=parse(photo.created_at),
-                urls=PhotoUrls(
-                    full=photo.urls.full,
-                    raw=photo.urls.raw,
-                    regular=photo.urls.regular,
-                    small=photo.urls.small,
-                    thumb=photo.urls.thumb,
-                ),
-                user=User(name=photo.user.name)
-            ) for photo in photos
-        )
+        for photo in photos:
+            yield self.convert(photo)
 
     def get_photo(self, *args, **kwargs):
         return self._client.photo.get(*args, **kwargs)
+
+    @staticmethod
+    def convert(photo):
+        position = Position(
+            latitude=photo.location.position['latitude'],
+            longitude=photo.location.position['longitude'],
+        )
+
+        location = Location(
+            city=photo.location.city,
+            country=photo.location.country,
+            position=position
+        )
+
+        exif = Exif(
+            aperture=photo.exif.aperture,
+            exposure_time=photo.exif.exposure_time,
+            focal_length=photo.exif.focal_length,
+            iso=photo.exif.iso,
+            make=photo.exif.make,
+            model=photo.exif.model,
+        )
+
+        urls = PhotoUrls(
+            full=photo.urls.full,
+            raw=photo.urls.raw,
+            regular=photo.urls.regular,
+            small=photo.urls.small,
+            thumb=photo.urls.thumb,
+        )
+
+        return Photo(
+            id=photo.id,
+            provider='unsplash',
+            likes=photo.likes,
+            location=location,
+            exif=exif,
+            tags={tag: True for tag in (tag['title'] for tag in photo.tags)},
+            created=parse(photo.created_at),
+            urls=urls,
+            user=User(name=photo.user.name),
+        )
