@@ -1,4 +1,3 @@
-from dateutil.parser import parse
 from hashlib import md5
 
 from provider import FirebaseAPIProvider, UnsplashAPIProvider
