@@ -49,6 +49,12 @@ class FirebaseAPIProvider(APIProvider):
         document_ref = collection_ref.document(document_id)
         document_ref.set(data)
 
+    def get_documents(self, collection_id):
+        collection_ref = self._client.collection(collection_id)
+        docs = collection_ref.stream()
+        for doc in docs:
+            yield {doc.id: doc.to_dict()}
+
 
 class UnsplashAPIProvider(PhotoAPIProvider):
 
