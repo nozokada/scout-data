@@ -48,8 +48,9 @@ class DataService:
             data = json.load(file, object_hook=self.parse_scout_data_types)
 
         for key, value in data.items():
+            print(f'Uploading {key}...')
             data_service.firebase_provider.add_document(
-                collection_id="photos_test", document_id=key, data=value
+                collection_id="photos", document_id=key, data=value
             )
 
     @staticmethod
@@ -89,8 +90,8 @@ class DataService:
 
 data_service = DataService()
 
-# data_service.execute_scraping_cycle(page_number=126)
+data_service.execute_scraping_cycle(page_number=126)
 
 # data_service.write_scout_photos_to_json()
 
-data_service.read_scout_photos_from_json()
+# data_service.read_scout_photos_from_json()

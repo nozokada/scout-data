@@ -4,12 +4,11 @@ from abc import ABC, abstractmethod
 import firebase_admin
 from dateutil.parser import parse
 from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1 import GeoPoint
 from unsplash.api import Api
 from unsplash.auth import Auth
 
 from constants import UNSPLASH_CREDENTIALS_FILE_PATH, FIREBASE_CREDENTIALS_FILE_PATH
-from models import Photo, Location, Exif, PhotoUrls, User
+from models import Photo, Location, Exif, PhotoUrls, User, Position
 
 
 class APIProvider(ABC):
@@ -79,7 +78,7 @@ class UnsplashAPIProvider(PhotoAPIProvider):
         location = Location(
             city=photo.location.city,
             country=photo.location.country,
-            position=GeoPoint(
+            position=Position(
                 latitude=photo.location.position['latitude'],
                 longitude=photo.location.position['longitude']
             )
