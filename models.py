@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel
+from typing import List
 
 
 class Position(BaseModel):
@@ -36,7 +37,7 @@ class User(BaseModel):
 
 
 class Photo(BaseModel):
-    id: str
+    raw_id: str
     provider: str
     likes: int
     location: Location
@@ -45,3 +46,8 @@ class Photo(BaseModel):
     created: datetime
     urls: PhotoUrls
     user: User
+
+
+class PhotoSpot(BaseModel):
+    location: Location
+    photos: List[str]
