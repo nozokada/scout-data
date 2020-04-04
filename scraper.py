@@ -32,7 +32,7 @@ class DataService:
                 for photo in self._scrape_photos(page_number):
                     self.firebase_provider.add_document(
                         collection_id=PHOTOS_REF_NAME,
-                        document_id=md5(photo.id.encode()).hexdigest(),
+                        document_id=f'photo_{md5(photo.id.encode()).hexdigest()}',
                         data=photo.dict()
                     )
             except UnsplashError as e:
@@ -57,7 +57,7 @@ class DataService:
         with open(f'{collection_id}.json', 'r') as file:
             data = json.load(file, object_hook=self.load_scout_data_types)
         for key, value in data.items():
-            self.firebase_provider.add_document(collection_id=collection_id, document_id=key, data=value)
+            self.firebase_provider.add_document(collection_id=collection_id, document_id=f'photo_{key}', data=value)
 
     @staticmethod
     def dump_scout_data_types(o):
@@ -77,6 +77,12 @@ data_service = DataService()
 
 # data_service.execute_scraping_cycle(page_number=126)
 
-# data_service.download_scout_photos_to_json()
+# data_service.download_scout_photos_to_json(collection_id=PHOTOS_REF_NAME)
 
-data_service.upload_scout_docs_from_json(collection_id=PHOTOS_REF_NAME)
+# data_service.upload_scout_docs_from_json(collection_id=PHOTOS_REF_NAME)
+
+# results = data_service.firebase_provider.search_documents(
+#     collection_id='photos_test',
+#     wheres=[('location.position.latitude', '==', 52.47552833), ('location.position.longitude', '==', -1.88157833)]
+# )
+# print(list(results))

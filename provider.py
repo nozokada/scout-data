@@ -18,7 +18,7 @@ class APIProvider(ABC):
         pass
 
     @abstractmethod
-    def authenticate(self):
+    def _authenticate(self):
         pass
 
 
@@ -36,9 +36,9 @@ class FirebaseAPIProvider(APIProvider):
 
     def __init__(self):
         APIProvider.__init__(self)
-        self._client = self.authenticate()
+        self._client = self._authenticate()
 
-    def authenticate(self):
+    def _authenticate(self):
         cred = credentials.Certificate(FIREBASE_CREDENTIALS_FILE_PATH)
         firebase_admin.initialize_app(cred)
         return firestore.client()
@@ -53,14 +53,21 @@ class FirebaseAPIProvider(APIProvider):
         for doc in collection_ref.stream():
             yield {'id': doc.id, 'data': doc.to_dict()}
 
+    def search_documents(self, collection_id, wheres):
+        collection_ref = self._client.collection(collection_id)
+        for where in wheres:
+            collection_ref = collection_ref.where(*where)
+        for doc in collection_ref.stream():
+            yield {'id': doc.id, 'data': doc.to_dict()}
+
 
 class UnsplashAPIProvider(PhotoAPIProvider):
 
     def __init__(self):
         PhotoAPIProvider.__init__(self)
-        self._client = self.authenticate()
+        self._client = self._authenticate()
 
-    def authenticate(self):
+    def _authenticate(self):
         with open(UNSPLASH_CREDENTIALS_FILE_PATH) as file:
             cred = json.load(file)
         return Api(Auth(**cred))
