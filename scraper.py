@@ -31,20 +31,17 @@ class DataService:
         while True:
             try:
                 for photo in self._scrape_photos(page_number):
+                    hash_id = md5(photo.raw_id.encode()).hexdigest()
                     self.firebase_provider.add_document(
-                        collection_id=TP_PHOTOS_REF_NAME,
-                        document_id=md5(photo.raw_id.encode()).hexdigest(),
-                        data=photo.dict()
+                        collection_id=TP_PHOTOS_REF_NAME, document_id=hash_id, data=photo.dict()
                     )
             except UnsplashError as e:
                 print(f'Handling Unsplash error: {e}')
-                time.sleep(3600)
+                self.wait_for_random_seconds(min=3600)
                 continue
 
             page_number += 1
-            wait_seconds = random.randint(0, 3600)
-            print(f'Waiting for {wait_seconds} seconds to avoid rate limiting...')
-            time.sleep(wait_seconds)
+            self.wait_for_random_seconds()
 
     def download_scout_doc_to_json(self, collection_id):
         data = {}
@@ -59,6 +56,12 @@ class DataService:
             data = json.load(file, object_hook=self.load_scout_data_types)
         for key, value in data.items():
             self.firebase_provider.add_document(collection_id=collection_id, document_id=key, data=value)
+
+    @staticmethod
+    def wait_for_random_seconds(min=0, max=3600):
+        wait_seconds = random.randint(min, max)
+        print(f'Waiting for {wait_seconds} seconds to avoid rate limiting...')
+        time.sleep(wait_seconds)
 
     @staticmethod
     def dump_scout_data_types(o):
