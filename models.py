@@ -1,12 +1,7 @@
 from datetime import datetime
 
+from google.cloud.firestore_v1 import GeoPoint
 from pydantic import BaseModel
-from typing import List
-
-
-class Position(BaseModel):
-    latitude: float = None
-    longitude: float = None
 
 
 class Exif(BaseModel):
@@ -21,7 +16,10 @@ class Exif(BaseModel):
 class Location(BaseModel):
     city: str = None
     country: str = None
-    position: Position
+    position: GeoPoint
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PhotoUrls(BaseModel):
@@ -46,8 +44,3 @@ class Photo(BaseModel):
     created: datetime
     urls: PhotoUrls
     user: User
-
-
-class PhotoSpot(BaseModel):
-    location: Location
-    photos: List[str]
