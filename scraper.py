@@ -32,6 +32,7 @@ class DataService:
             try:
                 for photo in self._scrape_photos(page_number):
                     hash_id = md5(photo.raw_id.encode()).hexdigest()
+                    print(f'Adding document for photo {hash_id}...')
                     self.firebase_provider.add_document(
                         collection_id=TP_PHOTOS_REF_NAME, document_id=hash_id, data=photo.dict()
                     )
@@ -81,6 +82,6 @@ class DataService:
 
 data_service = DataService()
 
-data_service.execute_photo_scraping_cycle(page_number=126)
+data_service.execute_photo_scraping_cycle(page_number=125)
 # data_service.download_scout_photos_to_json(collection_id=TP_PHOTOS_REF_NAME)
 # data_service.upload_scout_docs_from_json(collection_id=TP_PHOTOS_REF_NAME)

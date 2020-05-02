@@ -92,7 +92,7 @@ class UnsplashAPIProvider(PhotoAPIProvider):
             position=GeoPoint(
                 latitude=photo.location.position['latitude'],
                 longitude=photo.location.position['longitude']
-            )
+            ),
         )
 
         exif = Exif(
