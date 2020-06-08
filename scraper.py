@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 import time
 from datetime import datetime
@@ -17,10 +18,11 @@ class DataService:
     def __init__(self):
         self.firebase_provider = FirebaseAPIProvider()
         self.photo_provider = UnsplashAPIProvider()
+        logging.basicConfig(filename='scraper.log', level=logging.INFO)
 
     def _scrape_photos(self, page_number):
         photos = []
-        print(f'Scraping photos at page {page_number}...')
+        logging.info(f'Scraping photos at page {page_number}...')
         for photo in self.photo_provider.get_photos(order_by='popular', per_page=15, page=page_number):
             if photo.location.position.longitude is None or photo.location.position.latitude is None:
                 continue
@@ -32,17 +34,17 @@ class DataService:
             try:
                 for photo in self._scrape_photos(page_number):
                     hash_id = md5(photo.raw_id.encode()).hexdigest()
-                    print(f'Adding document for photo {hash_id}...')
+                    logging.info(f'Adding document for photo {hash_id}...')
                     self.firebase_provider.add_document(
                         collection_id=TP_PHOTOS_REF_NAME, document_id=hash_id, data=photo.dict()
                     )
             except UnsplashError as e:
-                print(f'Handling Unsplash error: {e}')
+                logging.info(f'Handling Unsplash error: {e}')
                 self.wait_for_random_seconds(min=3600)
                 continue
 
             page_number += 1
-            self.wait_for_random_seconds()
+            self.wait_for_random_seconds(min=600, max=1800)
 
     def download_scout_doc_to_json(self, collection_id):
         data = {}
@@ -61,7 +63,7 @@ class DataService:
     @staticmethod
     def wait_for_random_seconds(min=0, max=3600):
         wait_seconds = random.randint(min, max)
-        print(f'Waiting for {wait_seconds} seconds to avoid rate limiting...')
+        logging.info(f'Waiting for {wait_seconds} seconds to avoid rate limiting...')
         time.sleep(wait_seconds)
 
     @staticmethod
@@ -82,6 +84,6 @@ class DataService:
 
 data_service = DataService()
 
-data_service.execute_photo_scraping_cycle(page_number=125)
+data_service.execute_photo_scraping_cycle(page_number=2200)
 # data_service.download_scout_photos_to_json(collection_id=TP_PHOTOS_REF_NAME)
 # data_service.upload_scout_docs_from_json(collection_id=TP_PHOTOS_REF_NAME)
