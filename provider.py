@@ -5,6 +5,7 @@ import firebase_admin
 from dateutil.parser import parse
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import GeoPoint
+from unsplash import UnsplashError
 from unsplash.api import Api
 from unsplash.auth import Auth
 
@@ -31,6 +32,15 @@ class PhotoAPIProvider(APIProvider, ABC):
     @abstractmethod
     def get_photos(self, *args, **kwargs):
         pass
+
+
+class APIProviderError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(message)
+
+    def __str__(self):
+        return self.message
 
 
 class FirebaseAPIProvider(APIProvider):
@@ -77,7 +87,11 @@ class UnsplashAPIProvider(PhotoAPIProvider):
         return Api(Auth(**cred))
 
     def get_photos(self, *args, **kwargs):
-        photos = (self.get_photo(listed_photo.id) for listed_photo in self._client.photo.all(*args, **kwargs))
+        try:
+            photos = (self.get_photo(listed_photo.id) for listed_photo in self._client.photo.all(*args, **kwargs))
+        except UnsplashError as e:
+            raise APIProviderError(e)
+
         for photo in photos:
             yield self.convert(photo)
 
