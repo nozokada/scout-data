@@ -27,7 +27,7 @@ class APIProvider(ABC):
 class PhotoAPIProvider(APIProvider, ABC):
 
     def __init__(self):
-        APIProvider.__init__(self)
+        super().__init__()
 
     @abstractmethod
     def get_photos(self, *args, **kwargs):
@@ -46,7 +46,7 @@ class APIProviderError(Exception):
 class FirebaseAPIProvider(APIProvider):
 
     def __init__(self):
-        APIProvider.__init__(self)
+        super().__init__()
         self._client = self._authenticate()
 
     def _authenticate(self):
