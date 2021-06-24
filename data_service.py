@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from google.cloud.firestore_v1 import GeoPoint
 
 from constants import PHOTOS_REF_NAME, SPOTS_REF_NAME, SPOTS_GEO_REF_NAME
-from provider import FirebaseAPIProvider, UnsplashAPIProvider, APIProviderError
+from provider import FirebaseClient, UnsplashAPIClient, APIClientError
 
 
 def load_scout_data_types(json_dict):
@@ -35,8 +35,8 @@ def wait_for_random_seconds(min=0, max=3600):
 class DataService:
 
     def __init__(self):
-        self.firebase_provider = FirebaseAPIProvider()
-        self.photo_provider = UnsplashAPIProvider()
+        self.firebase_provider = FirebaseClient()
+        self.photo_provider = UnsplashAPIClient()
 
     def _get_data_from_photo_provider(self, page_number):
         photos = []
@@ -60,7 +60,7 @@ class DataService:
                         document_id=None,
                         data=photo.dict()
                     )
-            except APIProviderError as e:
+            except APIClientError as e:
                 logging.info(f'Handling API Provider error: {e}')
                 wait_for_random_seconds(min=3600)
                 continue

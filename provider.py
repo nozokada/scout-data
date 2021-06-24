@@ -13,7 +13,7 @@ from constants import UNSPLASH_CREDENTIALS_FILE_PATH, FIREBASE_CREDENTIALS_FILE_
 from models import Photo, Location, Exif, PhotoUrls, User
 
 
-class APIProvider(ABC):
+class APIClient(ABC):
 
     @abstractmethod
     def __init__(self):
@@ -24,7 +24,7 @@ class APIProvider(ABC):
         pass
 
 
-class PhotoAPIProvider(APIProvider, ABC):
+class PhotoAPIClient(APIClient, ABC):
 
     def __init__(self):
         super().__init__()
@@ -34,7 +34,7 @@ class PhotoAPIProvider(APIProvider, ABC):
         pass
 
 
-class APIProviderError(Exception):
+class APIClientError(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(message)
@@ -43,7 +43,7 @@ class APIProviderError(Exception):
         return self.message
 
 
-class FirebaseAPIProvider(APIProvider):
+class FirebaseClient(APIClient):
 
     def __init__(self):
         super().__init__()
@@ -86,10 +86,10 @@ class FirebaseAPIProvider(APIProvider):
         document_ref.update(field)
 
 
-class UnsplashAPIProvider(PhotoAPIProvider):
+class UnsplashAPIClient(PhotoAPIClient):
 
     def __init__(self):
-        PhotoAPIProvider.__init__(self)
+        PhotoAPIClient.__init__(self)
         self._client = self._authenticate()
 
     def _authenticate(self):
@@ -101,7 +101,7 @@ class UnsplashAPIProvider(PhotoAPIProvider):
         try:
             photos = (self.get_photo(listed_photo.id) for listed_photo in self._client.photo.all(*args, **kwargs))
         except UnsplashError as e:
-            raise APIProviderError(e)
+            raise APIClientError(e)
 
         for photo in photos:
             yield self.convert(photo)
