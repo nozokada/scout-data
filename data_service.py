@@ -3,12 +3,11 @@ import logging
 import random
 import time
 from datetime import datetime
-from hashlib import md5
 
 from dateutil.parser import parse
 from google.cloud.firestore_v1 import GeoPoint
 
-from constants import PHOTOS_REF_NAME
+from constants import PHOTOS_REF_NAME, SPOTS_REF_NAME, SPOTS_GEO_REF_NAME
 from provider import FirebaseAPIProvider, UnsplashAPIProvider, APIProviderError
 
 
@@ -84,3 +83,22 @@ class DataService:
             self.firebase_provider.add_document(collection_id=collection_id,
                                                 document_id=key,
                                                 data=value)
+
+    def copy_geo_hash(self):
+        for doc in self.firebase_provider.get_documents(collection_id=SPOTS_REF_NAME):
+            doc_id = doc['id']
+            logging.info(f'Copying geohash for {doc_id}...')
+            geo_doc = self.firebase_provider.get_document(
+                collection_id=SPOTS_GEO_REF_NAME,
+                document_id=doc_id
+            )
+            if not geo_doc:
+                logging.info(f'Geohash was not found for {doc_id}')
+                continue
+            geohash = geo_doc['data']['g']
+            self.firebase_provider.add_field_to_document(
+                collection_id=SPOTS_REF_NAME,
+                document_id=doc_id,
+                field={'geohash': geohash}
+            )
+            wait_for_random_seconds(max=3)

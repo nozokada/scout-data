@@ -62,6 +62,12 @@ class FirebaseAPIProvider(APIProvider):
         else:
             collection_ref.add(data)
 
+    def get_document(self, collection_id, document_id):
+        collection_ref = self._client.collection(collection_id)
+        document_ref = collection_ref.document(document_id)
+        doc = document_ref.get()
+        return {'id': doc.id, 'data': doc.to_dict()} if doc.exists else None
+
     def get_documents(self, collection_id):
         collection_ref = self._client.collection(collection_id)
         for doc in collection_ref.stream():
@@ -73,6 +79,11 @@ class FirebaseAPIProvider(APIProvider):
             collection_ref = collection_ref.where(*where)
         for doc in collection_ref.stream():
             yield {'id': doc.id, 'data': doc.to_dict()}
+
+    def add_field_to_document(self, collection_id, document_id, field: dict):
+        collection_ref = self._client.collection(collection_id)
+        document_ref = collection_ref.document(document_id)
+        document_ref.update(field)
 
 
 class UnsplashAPIProvider(PhotoAPIProvider):
