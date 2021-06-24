@@ -42,8 +42,11 @@ class DataService:
     def _get_data_from_photo_provider(self, page_number):
         photos = []
         logging.info(f'Retrieving photos at page {page_number}...')
-        for photo in self.photo_provider.get_photos(order_by='popular', per_page=15, page=page_number):
-            if photo.location.position.longitude is None or photo.location.position.latitude is None:
+        for photo in self.photo_provider.get_photos(order_by='popular',
+                                                    per_page=15,
+                                                    page=page_number):
+            if photo.location.position.longitude is None \
+                    or photo.location.position.latitude is None:
                 continue
             photos.append(photo)
         return photos
@@ -52,10 +55,11 @@ class DataService:
         while True:
             try:
                 for photo in self._get_data_from_photo_provider(page_number):
-                    hash_id = md5(photo.raw_id.encode()).hexdigest()
-                    logging.info(f'Adding document for photo {hash_id}...')
+                    logging.info(f'Adding document for photo...')
                     self.firebase_provider.add_document(
-                        collection_id=PHOTOS_REF_NAME, document_id=None, data=photo.dict()
+                        collection_id=PHOTOS_REF_NAME,
+                        document_id=None,
+                        data=photo.dict()
                     )
             except APIProviderError as e:
                 logging.info(f'Handling API Provider error: {e}')
@@ -77,4 +81,6 @@ class DataService:
         with open(f'{collection_id}.json', 'r') as file:
             data = json.load(file, object_hook=load_scout_data_types)
         for key, value in data.items():
-            self.firebase_provider.add_document(collection_id=collection_id, document_id=key, data=value)
+            self.firebase_provider.add_document(collection_id=collection_id,
+                                                document_id=key,
+                                                data=value)
